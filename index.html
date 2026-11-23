@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cherche et trouve – Repérer les facteurs de tension</title>
+<style>
+:root{
+  --bg:#f7f4f1; --ink:#171717; --muted:#626262; --teal:#287b8b;
+  --teal-dark:#236f7e; --pink:#ed0b4b; --line:#e5e2df; --white:#fff;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,Helvetica,sans-serif}
+.activity{width:min(1180px,100%);margin:0 auto;padding:26px 28px 30px}
+.topline{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.home{width:36px;height:36px;border-radius:50%;background:var(--teal);color:#fff;display:grid;place-items:center;font-size:19px;flex:none}
+h1{font-size:clamp(22px,3vw,31px);line-height:1.15;letter-spacing:1.2px;margin:0;font-weight:800}
+.intro{font-size:15px;line-height:1.55;margin:0 0 22px 50px}
+.intro strong{font-weight:700}
+.columns{align-items:start}
+.panel{background:var(--white);padding:25px 26px;border:1px solid #f0eeec;min-width:0}
+.situation{font-size:16px;line-height:1.58}
+.situation p{margin:0 0 9px}
+.audio-note{margin:16px 0 8px;text-align:center;font-weight:700;color:#555;font-size:14px}
+.audio-placeholder{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--line);border-radius:5px;color:#4b4b4b;font-size:14px;max-width:310px;margin:0 auto}
+.play{width:36px;height:36px;border:1px solid var(--line);border-radius:50%;display:grid;place-items:center;color:#333}
+.audio-placeholder small{display:block;color:#999;margin-top:3px}
+h2{font-size:18px;line-height:1.3;margin:0 0 8px;font-weight:750}
+.instruction{font-size:13px;line-height:1.45;color:#555;margin:0 0 15px}
+label{font-size:12px;color:#555;display:block;margin:0 0 6px}
+textarea{width:100%;min-height:220px;resize:vertical;border:1px solid #dedede;border-radius:7px;padding:14px 15px;font:15px/1.6 Arial,Helvetica,sans-serif;color:var(--ink);background:#fff;outline:none}
+textarea:focus{border-color:var(--teal);box-shadow:0 0 0 2px #287b8b20}
+.hint{font-size:12px;color:#777;margin:7px 0 0}
+.actions{display:flex;justify-content:flex-end;gap:9px;margin-top:12px}
+button{border:0;border-radius:5px;padding:11px 23px;font-weight:700;font-size:13px;cursor:pointer}
+.validate{background:var(--pink);color:white}
+.validate:hover{background:#d90842}
+.reset{background:#ece9e6;color:#333}
+.feedback{display:none;margin-top:16px;padding:15px 16px;border-radius:6px;background:#f7f4f1;border-left:4px solid var(--teal)}
+.feedback.show{display:block}
+.feedback h3{margin:0 0 6px;font-size:16px}
+.feedback p{margin:0;font-size:14px;line-height:1.5}
+.correction{display:none;margin-top:14px}
+.correction.show{display:block}
+.correction h3{font-size:16px;margin:0 0 10px}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.answer{display:flex;gap:10px;background:#fff;border:1px solid var(--line);padding:10px 11px;border-radius:5px;font-size:13px;line-height:1.4}
+.number{flex:none;color:var(--teal);font-weight:800}
+.footer{margin-top:18px;display:flex;justify-content:space-between;align-items:center;color:#777;font-size:11px}
+.footer-mark{font-weight:800;color:var(--teal);letter-spacing:.4px}
+@media(max-width:760px){
+ .activity{padding:18px 14px 24px}.topline{align-items:flex-start}.intro{margin-left:0}
+ .columns{grid-template-columns:1fr}.panel{padding:20px}
+ textarea{min-height:180px}.answers{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<main class="activity">
+  <section class="columns">
+    <article class="panel">
+      <h2>Quels sont les facteurs liés au cadre qui amplifient les tensions entre les enfants et l’équipe d’animation ?</h2>
+      <p class="instruction">Saisissez votre réponse sous forme de liste à puces. Vous pouvez écrire un facteur par ligne, avec vos propres mots.</p>
+      <label for="answer">Votre réponse</label>
+      <textarea id="answer" placeholder="• Un premier facteur…&#10;• Un deuxième facteur…&#10;• …" spellcheck="true"></textarea>
+      <p class="hint">Astuce : appuyez sur Entrée pour passer à la ligne suivante.</p>
+      <div class="actions">
+        <button class="reset" id="reset" type="button">Effacer</button>
+        <button class="validate" id="validate" type="button">Valider</button>
+      </div>
+      <div class="feedback" id="feedback" role="status" aria-live="polite"></div>
+      <section class="correction" id="correction" aria-live="polite">
+        <h3>Correction – Les 8 facteurs attendus</h3>
+        <div class="answers" id="answers"></div>
+      </section>
+    </article>
+  </section>
+</main>
+<script>
+(function(){
+ const expected = [
+  {text:"Un changement de planning communiqué trop tard.", test:t=>/(planning|programme|atelier|activit).*(chang|modifi|annul|dernier moment|tard)|(chang|modifi|annul).*(planning|programme|atelier|activit)|dernier moment/.test(t)},
+  {text:"Un manque d’anticipation et d’information auprès des enfants.", test:t=>/(pas.*(expliqu|inform|pr[eé]venu)|personne.*(expliqu|inform)|manque.*(information|anticipation)|absence.*(information|explication)|enfants.*(ne savent pas|pas au courant)|sans.*(explication|information))/.test(t)},
+  {text:"Une salle accueillant deux groupes simultanément.", test:t=>/(deux groupes|2 groupes|plusieurs groupes|groupes.*m[eê]me salle|m[eê]me salle.*groupes|cohabitation.*groupes)/.test(t)},
+  {text:"Un nombre insuffisant de jeux et de matériel.", test:t=>/(peu de jeux|petit nombre.*(jeux|materiel)|pas assez de jeux|manque.*(jeux|mat[eé]riel)|insuffis.*(jeux|mat[eé]riel)|nombre insuffisant.*(jeux|mat[eé]riel)|partager.*(jeux|mat[eé]riel))/.test(t)},
+  {text:"Des arrivées et départs échelonnés qui perturbent l’activité.", test:t=>/(parents.*(arriv|d[eé]part)|arriv[eé]es?.*(parents|familles)|d[eé]parts?.*(enfants|parents)|arriv[eé]es?.*d[eé]parts?|flux.*(parents|familles)|va.?et.?vient)/.test(t)},
+  {text:"Un effectif d’encadrement insuffisant au regard des tâches à réaliser.", test:t=>/(une seule animatrice|un seul animateur|pas assez d.?animateur|manque.*(personnel|encadrement|animateur)|effectif.*(insuffisant|faible)|sous.?effectif|encadrement insuffisant)/.test(t)},
+  {text:"Une accumulation de missions pour l’animateur.", test:t=>/(plusieurs taches|trop de taches|trop de missions|cumule.*(taches|missions)|doit aussi|en m[eê]me temps.*(pr[eé]parer|r[eé]pondre)|pr[eé]parer.*go[uû]ter.*(parents|r[eé]pondre)|multiplicit[eé].*(taches|missions))/.test(t)},
+  {text:"Des consignes contradictoires et un temps d’attente trop long.", test:t=>/(consignes?.*(contradicto|se contredisent)|contradicto.*consignes?|attente.*(long|s.allonge)|temps d.attente|attendre.*longtemps)/.test(t)}
+ ];
+ const normalize = s => s.toLocaleLowerCase('fr').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[’']/g,"'").replace(/\s+/g,' ').trim();
+ const answer=document.getElementById('answer'), feedback=document.getElementById('feedback');
+ const correction=document.getElementById('correction'), answers=document.getElementById('answers');
+ document.getElementById('validate').addEventListener('click',()=>{
+   const raw=answer.value.trim();
+   if(!raw){
+     feedback.className='feedback show';
+     feedback.innerHTML='<h3>Votre réponse est vide.</h3><p>Saisissez au moins un facteur avant de valider.</p>';
+     correction.className='correction';
+     answer.focus(); return;
+   }
+   const text=normalize(raw);
+   const found=expected.map(item=>item.test(text));
+   const count=found.filter(Boolean).length;
+   feedback.className='feedback show';
+   if(count===8){
+     feedback.innerHTML='<h3>Réponse correcte !</h3><p>Bravo, les huit facteurs liés au cadre et à l’organisation ont été repérés.</p>';
+   }else if(count>0){
+     feedback.innerHTML='<h3>Réponse incorrecte ou incomplète.</h3><p>Vous avez identifié '+count+' facteur(s) sur 8. Certains éléments attendus manquent ou ne sont pas assez explicites. Consultez la correction ci-dessous.</p>';
+   }else{
+     feedback.innerHTML='<h3>Réponse incorrecte.</h3><p>Les facteurs attendus n’ont pas été retrouvés dans votre réponse. Consultez la correction ci-dessous.</p>';
+   }
+   answers.innerHTML='';
+   expected.forEach((item,i)=>{
+     const div=document.createElement('div'); div.className='answer';
+     const n=document.createElement('span'); n.className='number'; n.textContent=(i+1)+'.';
+     const p=document.createElement('span'); p.textContent=item.text;
+     div.append(n,p); answers.append(div);
+   });
+   correction.className='correction show';
+ });
+ document.getElementById('reset').addEventListener('click',()=>{
+   answer.value=''; feedback.className='feedback'; correction.className='correction'; answer.focus();
+ });
+})();
+</script>
+</body>
+</html>
